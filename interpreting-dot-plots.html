@@ -1,0 +1,1026 @@
+<!doctype html>
+<html lang="en-AU">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>5.1 Interpreting Dot Plots</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Nunito:ital,wght@0,400;0,600;0,700;0,800;1,600&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#F6F8FC;
+    --grid:#E1E8F2;
+    --grid-strong:#CFDAEC;
+    --ink:#18233F;
+    --ink-soft:#5A6783;
+    --ink-faint:#8A95AD;
+    --accent:#12A594;        /* interactive / primary — teal to match the dot plots */
+    --accent-soft:#DDF4F0;
+    --mode:#DB2777;          /* highlight / winner */
+    --mode-soft:#FCE7F1;
+    --tail:#0EA5E9;
+    --bar:#A9B6D8;
+    --bar-deep:#7C8BC0;
+    --ok:#16A34A;
+    --ok-soft:#E7F6EC;
+    --green:#16A34A; --green-bg:#E7F6EC; --green-line:#B7E4C6;
+    --amber:#D97706; --amber-bg:#FCF1E1; --amber-line:#F3D9AE;
+    --red:#DC2626;   --red-bg:#FBEAEA;   --red-line:#F2C2C2;
+    --c-orange:#F0862E; --c-green:#6FB544; --c-magenta:#D94FB0;
+    --c-blue:#3E9AE6; --c-purple:#8B6FE0; --c-teal:#2FB6A8; --c-red:#E8604C;
+    --dot:#1AA99A;           /* the teal dot colour */
+    --card:#FFFFFF;
+    --shadow:0 1px 2px rgba(24,35,63,.05), 0 10px 30px -18px rgba(24,35,63,.25);
+    --radius:18px;
+    --maxw:1020px;
+    --display:'Fredoka', 'Trebuchet MS', system-ui, sans-serif;
+    --body:'Nunito', system-ui, -apple-system, sans-serif;
+    --mono:'Space Mono', ui-monospace, 'Courier New', monospace;
+  }
+
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{
+    margin:0; color:var(--ink); font-family:var(--body);
+    font-size:17px; line-height:1.6;
+    background-color:var(--paper);
+    background-image:
+      linear-gradient(var(--grid) 1px, transparent 1px),
+      linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+    background-size:26px 26px;
+    background-position:-1px -1px;
+  }
+  body.students .teacher-note{display:none !important}
+
+  .wrap{max-width:var(--maxw); margin:0 auto; padding:0 20px}
+
+  /* ---------- top bar ---------- */
+  header.bar{
+    position:sticky; top:0; z-index:40;
+    background:rgba(246,248,252,.88); backdrop-filter:blur(8px);
+    border-bottom:1px solid var(--grid-strong);
+  }
+  .bar-inner{max-width:var(--maxw); margin:0 auto; padding:10px 20px;
+    display:flex; align-items:center; gap:14px; flex-wrap:wrap}
+  .brand{font-family:var(--display); font-weight:700; font-size:1.05rem; letter-spacing:.2px;
+    display:flex; align-items:center; gap:9px; margin-right:auto}
+  .brand .glyph{display:inline-grid; grid-template-columns:repeat(3,7px); gap:3px; align-items:end; height:18px}
+  .brand .glyph i{border-radius:50%; display:block; width:7px; height:7px; background:var(--dot)}
+  nav.jump{display:flex; gap:4px; flex-wrap:wrap}
+  nav.jump a{font-family:var(--display); font-weight:500; font-size:.82rem; text-decoration:none;
+    color:var(--ink-soft); padding:6px 10px; border-radius:999px}
+  nav.jump a:hover{color:var(--ink); background:var(--accent-soft)}
+  .tview{font-family:var(--display); font-weight:600; font-size:.8rem; cursor:pointer;
+    border:1.5px solid var(--accent); color:var(--accent); background:transparent;
+    padding:6px 13px; border-radius:999px; display:inline-flex; align-items:center; gap:7px}
+  .tview .dot{width:9px;height:9px;border-radius:50%;background:var(--accent)}
+  body.students .tview{border-color:var(--ink-faint); color:var(--ink-soft)}
+  body.students .tview .dot{background:var(--ink-faint)}
+
+  /* ---------- hero ---------- */
+  .hero{padding:54px 0 30px}
+  .eyebrow{font-family:var(--mono); font-size:.72rem; letter-spacing:.22em; text-transform:uppercase;
+    color:var(--accent); font-weight:700}
+  .hero h1{font-family:var(--display); font-weight:700; line-height:1.02;
+    font-size:clamp(2.3rem,6vw,4.2rem); margin:.25em 0 .15em; letter-spacing:-.5px}
+  .hero h1 .pink{color:var(--mode)} .hero h1 .teal{color:var(--accent)}
+  .walt{display:inline-block; background:var(--ink); color:#fff; font-family:var(--display);
+    font-weight:500; padding:10px 16px; border-radius:12px; margin-top:8px; font-size:1.02rem}
+  .walt b{color:#FFD24A; font-weight:700}
+  .hero-grid{display:grid; grid-template-columns:1.05fr .95fr; gap:30px; align-items:start; margin-top:26px}
+  @media(max-width:760px){.hero-grid{grid-template-columns:1fr}}
+  .hero-chart{background:var(--card); border:1px solid var(--grid-strong); border-radius:var(--radius);
+    box-shadow:var(--shadow); padding:14px 16px 8px}
+  .hero-chart .cap{font-family:var(--mono); font-size:.7rem; color:var(--ink-faint); text-transform:uppercase; letter-spacing:.12em}
+
+  /* ---------- sections ---------- */
+  section{padding:38px 0; scroll-margin-top:64px}
+  .part-tag{display:inline-flex; align-items:center; gap:8px; font-family:var(--mono); font-size:.72rem;
+    letter-spacing:.16em; text-transform:uppercase; color:var(--accent); font-weight:700; margin-bottom:6px}
+  .part-tag::before{content:""; width:22px; height:2px; background:var(--accent); display:inline-block}
+  h2{font-family:var(--display); font-weight:700; font-size:clamp(1.7rem,3.5vw,2.5rem);
+    margin:.1em 0 .35em; letter-spacing:-.3px; line-height:1.08}
+  h3{font-family:var(--display); font-weight:600; font-size:1.25rem; margin:0 0 .4em}
+  .lead{font-size:1.08rem; color:var(--ink-soft); max-width:none; margin:.2em 0 1.2em}
+
+  .card{background:var(--card); border:1px solid var(--grid-strong); border-radius:var(--radius);
+    box-shadow:var(--shadow); padding:24px}
+  .card + .card{margin-top:18px}
+  .two{display:grid; grid-template-columns:1fr 1fr; gap:18px; align-items:stretch}
+  .two > .card{margin-top:0}
+  @media(max-width:720px){.two{grid-template-columns:1fr}}
+
+  .keyword{color:var(--mode); font-weight:800}
+  .define{background:var(--accent-soft); border-left:4px solid var(--accent); border-radius:10px;
+    padding:14px 16px; font-size:1.05rem}
+  .define b{color:var(--accent)}
+
+  /* steps */
+  ol.steps{counter-reset:s; list-style:none; padding:0; margin:14px 0 0; display:grid; gap:10px}
+  ol.steps li{counter-increment:s; display:flex; gap:12px; align-items:flex-start}
+  ol.steps li::before{content:counter(s); flex:0 0 auto; width:28px; height:28px; border-radius:8px;
+    background:var(--accent); color:#fff; font-family:var(--display); font-weight:700;
+    display:grid; place-items:center; font-size:.95rem}
+
+  /* frequency table */
+  table.freq{border-collapse:collapse; width:100%; max-width:420px; font-family:var(--body);
+    background:#fff; border-radius:12px; overflow:hidden; border:1px solid var(--grid-strong)}
+  table.freq caption{font-family:var(--display); font-weight:700; font-size:1.02rem; text-align:left;
+    padding:0 0 8px; color:var(--ink)}
+  table.freq th, table.freq td{padding:9px 14px; text-align:left; border-bottom:1px solid var(--grid)}
+  table.freq thead th{background:var(--accent); color:#fff; font-family:var(--display); font-weight:600; font-size:.95rem}
+  table.freq tbody tr:last-child td{border-bottom:0}
+  table.freq td.num{font-family:var(--mono); font-weight:700; text-align:center; width:80px; color:var(--ink)}
+  table.freq tbody tr:nth-child(even){background:var(--paper)}
+  .swatch{display:inline-block; width:12px; height:12px; border-radius:50%; margin-right:8px; vertical-align:-1px; background:var(--dot)}
+  .emoji-ico{display:inline-block; margin-right:8px; font-size:1.15em; line-height:1; vertical-align:-2px;
+    font-family:"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif}
+
+  /* reference card */
+  .ref{display:grid; grid-template-columns:1fr 1fr; gap:0; border-radius:var(--radius); overflow:hidden;
+    border:1px solid var(--grid-strong)}
+  @media(max-width:600px){.ref{grid-template-columns:1fr}}
+  .ref .cell{padding:18px 20px; background:#fff; border-top:1px solid var(--grid); border-right:1px solid var(--grid)}
+  .ref .cell h4{font-family:var(--display); font-weight:700; margin:0 0 4px; color:var(--accent); font-size:1.05rem;
+    display:flex; align-items:center; gap:8px}
+  .ref .cell p{margin:0; font-size:.96rem; color:var(--ink-soft)}
+  .ref .cell .pin{font-size:.85rem; color:var(--ink-faint); margin-top:6px; font-style:italic}
+
+  /* key calculator */
+  .keycalc{display:flex; flex-wrap:wrap; align-items:center; gap:12px; background:#fff;
+    border:1px solid var(--grid-strong); border-radius:14px; padding:16px 18px; margin-top:10px}
+  .keycalc .chunk{display:flex; align-items:center; gap:10px; font-family:var(--display); font-weight:600}
+  .keycalc .dots{display:inline-flex; gap:4px}
+  .keycalc .dots i{width:14px;height:14px;border-radius:50%;background:var(--dot);display:block}
+  .keycalc select{font-family:var(--body); font-weight:700; font-size:.95rem; color:var(--ink);
+    border:1.5px solid var(--grid-strong); border-radius:9px; padding:6px 10px; background:#fff; cursor:pointer}
+  .keycalc .eq{font-family:var(--mono); font-weight:700; font-size:1.15rem; color:var(--accent)}
+  .keycalc .out{font-family:var(--display); font-weight:700; font-size:1.35rem; color:var(--mode)}
+  .keycalc .catpick{display:flex; align-items:center; gap:8px}
+
+  /* buttons */
+  .btn{font-family:var(--display); font-weight:600; font-size:.9rem; cursor:pointer; border-radius:10px;
+    padding:9px 16px; border:1.5px solid var(--accent); background:var(--accent); color:#fff;
+    transition:transform .1s, filter .15s; text-decoration:none; display:inline-block}
+  .btn:hover{filter:brightness(1.06)} .btn:active{transform:translateY(1px)}
+  .btn.ghost{background:transparent; color:var(--accent)}
+  .btn.sm{font-size:.82rem; padding:7px 13px}
+  .btnrow{display:flex; gap:10px; flex-wrap:wrap; margin-top:14px; align-items:center}
+
+  /* ---------- interactive dot-plot builder ---------- */
+  .builder{background:#fff; border:1px solid var(--grid-strong); border-radius:14px; padding:18px 18px 14px}
+  .builder-grid{display:grid; grid-template-columns:minmax(0,1fr) minmax(210px,240px); gap:18px; align-items:start}
+  .builder-grid.has-table{grid-template-columns:minmax(170px,205px) minmax(0,1fr) minmax(205px,235px)}
+  @media(max-width:860px){.builder-grid,.builder-grid.has-table{grid-template-columns:1fr}}
+  .datatag{font-family:var(--mono); font-size:.64rem; letter-spacing:.14em; text-transform:uppercase; color:var(--ink-faint); font-weight:700; margin-bottom:7px}
+  .builder .freq{max-width:none; font-size:.9rem}
+  .builder .freq caption{font-size:.9rem; padding-bottom:6px}
+  .builder .freq th{padding:7px 10px; font-size:.78rem; vertical-align:top}
+  .builder .freq td{padding:6px 10px; font-size:.9rem}
+  .builder .freq td.num{width:auto; min-width:44px; padding-left:6px; padding-right:10px}
+  .graphfig{display:flex; flex-direction:column; align-items:center; max-width:480px; width:100%; margin:0 auto}
+  .gtitle{font-family:var(--display); font-weight:700; font-size:1.02rem; text-align:center; margin-bottom:6px; color:var(--ink); min-height:1.2em}
+  .gsvg{width:100%; min-width:0}
+  .buildchart{width:100%; height:auto; display:block; touch-action:none; cursor:pointer}
+  .keynote{font-family:var(--display); font-weight:600; font-size:.85rem; color:var(--ink-soft); margin-top:4px;
+    display:inline-flex; align-items:center; gap:7px}
+  .keynote i{width:12px;height:12px;border-radius:50%;background:var(--dot);display:inline-block}
+  .xlabel{font-family:var(--display); font-weight:600; font-size:.85rem; color:var(--ink-soft); margin-top:2px}
+
+  .steppers{display:flex; flex-direction:column; gap:8px; margin-top:4px}
+  .stepper{display:flex; align-items:center; gap:10px; background:var(--paper); border:1px solid var(--grid-strong);
+    border-radius:10px; padding:6px 8px 6px 12px}
+  .stepper .nm{flex:1 1 auto; font-weight:700; font-size:.92rem; display:flex; align-items:center}
+  .stepper .val{font-family:var(--mono); font-weight:700; font-size:1rem; width:34px; text-align:center; color:var(--ink)}
+  .stepbtn{width:30px; height:30px; border-radius:8px; border:1.5px solid var(--grid-strong); background:#fff;
+    font-family:var(--display); font-weight:700; font-size:1.1rem; line-height:1; color:var(--accent); cursor:pointer}
+  .stepbtn:hover{border-color:var(--accent)} .stepbtn:active{transform:translateY(1px)}
+
+  .controls{display:flex; gap:12px; flex-wrap:wrap; align-items:center; margin-top:14px}
+  .feedback{margin-top:12px; font-family:var(--display); font-weight:600; font-size:1rem; min-height:1.4em}
+  .feedback.good{color:var(--ok)} .feedback.bad{color:var(--amber)}
+  .checklist{list-style:none; margin:10px 0 0; padding:0; display:grid; gap:5px}
+  .checklist li{font-size:.9rem; color:var(--ink-soft); display:flex; gap:8px; align-items:center}
+  .checklist li .mk{font-weight:700}
+  .checklist li.ok .mk{color:var(--ok)} .checklist li.no .mk{color:var(--amber)}
+  .hintline{font-size:.86rem; color:var(--ink-faint); margin:8px 0 0}
+
+  /* ---------- activities ---------- */
+  .filterbar{display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin:6px 0 22px}
+  .filterbar .lbl{font-family:var(--mono); font-size:.72rem; letter-spacing:.12em; text-transform:uppercase; color:var(--ink-faint)}
+  .chip{font-family:var(--display); font-weight:600; font-size:.86rem; cursor:pointer; border-radius:999px;
+    padding:7px 15px; border:1.5px solid var(--grid-strong); background:#fff; color:var(--ink-soft);
+    display:inline-flex; align-items:center; gap:8px; transition:.15s}
+  .chip .lt{width:11px;height:11px;border-radius:50%}
+  .chip[data-f="all"] .lt{background:linear-gradient(90deg,var(--green),var(--amber),var(--red))}
+  .chip[data-f="green"] .lt{background:var(--green)}
+  .chip[data-f="amber"] .lt{background:var(--amber)}
+  .chip[data-f="red"] .lt{background:var(--red)}
+  .chip.on{color:var(--ink); border-color:var(--ink); box-shadow:var(--shadow)}
+
+  .activity{border-radius:var(--radius); border:1px solid var(--grid-strong); background:#fff;
+    box-shadow:var(--shadow); padding:0; overflow:hidden; margin-bottom:18px}
+  .activity.hide{display:none}
+  .activity .head{padding:16px 22px; display:flex; align-items:center; gap:12px; color:#fff}
+  .activity .head .tier{font-family:var(--display); font-weight:700; font-size:1.15rem; letter-spacing:.2px}
+  .activity .head .tag{margin-left:auto; font-family:var(--mono); font-size:.72rem; letter-spacing:.1em;
+    text-transform:uppercase; background:rgba(255,255,255,.22); padding:5px 10px; border-radius:999px}
+  .activity[data-tier="green"] .head{background:var(--green)}
+  .activity[data-tier="amber"] .head{background:var(--amber)}
+  .activity[data-tier="red"] .head{background:var(--red)}
+  .activity .body{padding:20px 22px}
+  .activity[data-tier="green"] .body{background:var(--green-bg)}
+  .activity[data-tier="amber"] .body{background:var(--amber-bg)}
+  .activity[data-tier="red"] .body{background:var(--red-bg)}
+  .scenario{background:#fff; border-radius:12px; padding:16px 18px; border:1px solid rgba(0,0,0,.05)}
+  .scenario + .scenario{margin-top:14px}
+  .scenario h4{font-family:var(--display); font-weight:700; margin:0 0 8px; font-size:1.05rem}
+  .qlist{margin:.4em 0 0; padding-left:1.25em} .qlist li{margin:3px 0}
+  ol.qanda{margin:.4em 0 0; padding-left:1.5em; display:grid; gap:14px}
+  ol.qanda li{margin:0}
+  ol.qanda .q{font-weight:600; margin-bottom:6px}
+  ol.qanda textarea{width:100%; font-family:var(--body); font-size:.95rem; color:var(--ink);
+    border:1.5px solid var(--grid-strong); border-radius:10px; padding:8px 12px; background:#fff;
+    min-height:44px; resize:vertical}
+  ol.qanda textarea:focus{outline:none; border-color:var(--accent)}
+  ol.qanda textarea::placeholder{color:var(--ink-faint)}
+  ol.qanda textarea.ok{border-color:var(--ok); background:var(--ok-soft)}
+  ol.qanda textarea.no{border-color:var(--amber); background:var(--amber-bg)}
+  ol.qanda .qmark{font-family:var(--display); font-weight:700; font-size:.85rem; margin-top:6px; display:block}
+  ol.qanda .qmark.ok{color:var(--ok)}
+  ol.qanda .qmark.no{color:var(--amber)}
+  ol.qanda .qmark.note{color:var(--accent)}
+  .checksum{font-family:var(--display); font-weight:700; color:var(--ink-soft); font-size:.9rem}
+  .star{color:var(--amber); font-weight:800}
+  .muted{color:var(--ink-soft)}
+
+  .answer{margin-top:14px; border-radius:12px; border:1px solid var(--grid-strong); background:#fff;
+    overflow:hidden; max-height:0; opacity:0; transition:max-height .35s ease, opacity .25s ease}
+  .answer.open{max-height:1600px; opacity:1}
+  .answer .inner{padding:14px 18px}
+  .answer h5{font-family:var(--display); font-weight:700; margin:0 0 6px; color:var(--green);
+    font-size:.95rem; display:flex; align-items:center; gap:8px}
+  .activity[data-tier="amber"] .answer h5{color:var(--amber)}
+  .activity[data-tier="red"] .answer h5{color:var(--red)}
+  .answer ul{margin:.2em 0; padding-left:1.2em} .answer li{margin:2px 0; font-size:.96rem}
+
+  /* teacher note */
+  .teacher-note{background:#FFFBEA; border:1px solid #F2E2A6; border-radius:12px;
+    padding:12px 16px; margin-top:16px; font-size:.93rem; color:#6b5d18}
+  .teacher-note b{font-family:var(--display); color:#8a6d00}
+  .teacher-note .pill{font-family:var(--mono); font-size:.62rem; letter-spacing:.12em; text-transform:uppercase;
+    background:#8a6d00; color:#fff; padding:3px 8px; border-radius:999px; margin-right:8px; vertical-align:1px}
+
+  /* context / links */
+  .linkgrid{display:grid; grid-template-columns:1fr 1fr; gap:16px}
+  @media(max-width:640px){.linkgrid{grid-template-columns:1fr}}
+  .linkcard{border:1px solid var(--grid-strong); border-radius:14px; background:#fff; padding:18px 20px}
+  .linkcard h4{font-family:var(--display); font-weight:700; margin:0 0 6px; font-size:1.1rem}
+  .linkcard p{margin:0 0 12px; color:var(--ink-soft); font-size:.95rem}
+  .decision{background:var(--accent-soft); border-radius:12px; padding:14px 16px; margin-top:8px;
+    font-family:var(--display); font-weight:600}
+
+  /* write-your-own answer boxes */
+  .writebox{display:grid; gap:10px; margin-top:14px}
+  .writerow{display:flex; gap:10px; align-items:flex-start}
+  .writerow .n{flex:0 0 auto; width:28px; height:28px; border-radius:8px; background:var(--accent); color:#fff;
+    font-family:var(--display); font-weight:700; display:grid; place-items:center; font-size:.95rem; margin-top:2px}
+  .writerow textarea{flex:1 1 auto; width:100%; font-family:var(--body); font-size:.95rem; color:var(--ink);
+    border:1.5px solid var(--grid-strong); border-radius:10px; padding:10px 12px; background:#fff;
+    min-height:56px; resize:vertical}
+  .writerow textarea:focus{outline:none; border-color:var(--accent)}
+  .writerow textarea::placeholder{color:var(--ink-faint)}
+
+  /* reflection */
+  .reflect{display:grid; gap:10px}
+  .rrow{background:#fff; border:1px solid var(--grid-strong); border-radius:12px; padding:12px 16px;
+    display:flex; align-items:center; gap:12px; flex-wrap:wrap}
+  .rrow .txt{flex:1 1 220px; font-weight:600}
+  .rate{display:inline-flex; gap:6px}
+  .rate button{font-family:var(--display); font-weight:600; font-size:.8rem; border:1.5px solid var(--grid-strong);
+    background:#fff; color:var(--ink-soft); border-radius:999px; padding:5px 12px; cursor:pointer}
+  .rate button.got.on{background:var(--green); border-color:var(--green); color:#fff}
+  .rate button.near.on{background:var(--amber); border-color:var(--amber); color:#fff}
+  .rate button.help.on{background:var(--red); border-color:var(--red); color:#fff}
+  .talk{margin-top:18px; background:var(--ink); color:#fff; border-radius:var(--radius); padding:18px 22px}
+  .talk b{color:#FFD24A; font-family:var(--display)}
+
+  footer{padding:34px 0 60px; color:var(--ink-faint); font-size:.85rem; text-align:center}
+  .curric{font-family:var(--mono); font-size:.72rem; color:var(--ink-faint); margin-top:4px}
+  .curric-link{font-family:var(--display); font-weight:700; font-size:.72rem; cursor:pointer; text-decoration:none;
+    padding:7px 16px; border-radius:999px; border:1.5px solid var(--grid-strong);
+    background:var(--card); color:var(--accent); transition:transform .1s, border-color .15s, color .15s;
+    display:inline-block}
+  .curric-link:hover{border-color:var(--accent); color:var(--accent)}
+  .curric-link:active{transform:translateY(1px)}
+  .eyebrow-row{display:flex; align-items:center; gap:14px; flex-wrap:wrap}
+
+  .chart{width:100%; height:auto; display:block}
+  .dotmark{transition:opacity .3s, fill .25s}
+  @media (prefers-reduced-motion: reduce){ .dotmark{transition:none} html{scroll-behavior:auto} }
+  :focus-visible{outline:3px solid var(--accent); outline-offset:2px; border-radius:6px}
+</style>
+</head>
+<body class="teacher">
+
+<header class="bar">
+  <div class="bar-inner">
+    <div class="brand"><span class="glyph"><i></i><i></i><i></i></span> Interpreting Dot Plots</div>
+    <nav class="jump">
+      <a href="#learn">What is it?</a>
+      <a href="#key">The key</a>
+      <a href="#freq">Highest &amp; lowest</a>
+      <a href="#make">Reading data</a>
+      <a href="#builder">Build one</a>
+      <a href="#activities">Must complete</a>
+      <a href="#context">Exit ticket</a>
+    </nav>
+    <button class="tview" id="tview" aria-pressed="true">
+      <span class="dot"></span><span id="tviewlabel">Teacher notes: on</span>
+    </button>
+  </div>
+</header>
+
+<!-- HERO -->
+<div class="wrap hero">
+  <div class="eyebrow-row">
+    <div class="eyebrow">Grade 5 Mathematics · Statistics</div>
+    <a class="curric-link" href="https://f10.vcaa.vic.edu.au/learning-areas/mathematics/curriculum?level=5#VC2M5ST01" target="_blank" rel="noopener">VC2M5ST01 · Victorian Curriculum 2.0 ↗</a>
+  </div>
+  <h1>5.1 Interpreting <span class="teal">Dot</span> <span class="pink">Plots</span></h1>
+
+  <div class="hero-grid">
+    <div>
+      <p class="lead" style="margin-top:22px">A dot plot stacks one dot for each result above a category. The taller the stack, the more there are. But watch the <b>key</b> — sometimes one dot stands for many people. Read the key, spot the highest and lowest stacks, and work out the differences.</p>
+      <div class="btnrow">
+        <a class="btn" href="#builder">Build a dot plot</a>
+        <a class="btn ghost" href="#learn">Start from the basics</a>
+      </div>
+    </div>
+    <div class="hero-chart">
+      <div class="cap">Team members · 1 dot = 5 people</div>
+      <svg id="heroChart" class="chart" viewBox="0 0 380 250" role="img" aria-label="Dot plot of team members"></svg>
+    </div>
+  </div>
+</div>
+
+<!-- SUCCESS CRITERIA -->
+<section id="intent" class="wrap">
+  <div class="part-tag">Success criteria · I can…</div>
+  <h2>What we’re aiming for</h2>
+  <div class="card">
+    <div class="reflect" id="iCanList"></div>
+    <div class="teacher-note"><span class="pill">Teacher</span><b>Read together.</b> The green criteria are the reading skills — the value of the key and describing the data. Amber is comparing frequencies (highest/lowest). Red is calculating differences between categories. Every skill can be practised in the builder and the tiered task below.</div>
+  </div>
+</section>
+
+<!-- LEARN -->
+<section id="learn" class="wrap">
+  <div class="part-tag">Big idea 1</div>
+  <h2>What is a dot plot?</h2>
+  <div class="two">
+    <div class="card">
+      <div class="cap" style="font-family:var(--mono);font-size:.7rem;color:var(--ink-faint);text-transform:uppercase;letter-spacing:.12em;margin-bottom:6px">Ages people passed their driving test · 1 dot = 1 person</div>
+      <svg id="ageChart" class="chart" viewBox="0 0 420 250" role="img" aria-label="Dot plot of ages people passed their driving test"></svg>
+      <p class="hintline">Data: 17, 17, 20, 17, 22, 18, 22, 18, 22, 18, 22, 17, 19, 18, 18. Each value becomes one dot above that number.</p>
+    </div>
+    <div class="card">
+      <h3>One dot for each result</h3>
+      <p style="margin-top:0;color:var(--ink-soft)">A <b>dot plot</b> shows data as stacks of dots. Each dot represents a result, and we stack them above the category or number it belongs to.</p>
+      <div class="card define" style="margin:6px 0 0">
+        The <b>frequency</b> of a category is how many dots are in its stack. The <b>tallest</b> stack is the most common; the <b>shortest</b> is the least common.
+      </div>
+      <p class="hintline" style="margin-top:12px">A gap (a number with <b>no</b> dots) still matters — it tells us nobody had that result.</p>
+    </div>
+  </div>
+</section>
+
+<!-- THE KEY -->
+<section id="key" class="wrap">
+  <div class="part-tag">Big idea 2 · Success criterion</div>
+  <h2>Read the value of the key</h2>
+  <p class="lead">Sometimes one dot stands for <b>more than one</b>. A <b>key</b> tells you the value of a single dot. To find the total for a category: <b>count the dots × the value of the key</b>.</p>
+
+  <div class="two">
+    <div class="card">
+      <div class="cap" style="font-family:var(--mono);font-size:.7rem;color:var(--ink-faint);text-transform:uppercase;letter-spacing:.12em;margin-bottom:6px">Team members · 1 dot = 5 people</div>
+      <svg id="teamChart" class="chart" viewBox="0 0 420 250" role="img" aria-label="Dot plot of team members"></svg>
+    </div>
+    <div class="card">
+      <h3>Count the dots, then use the key</h3>
+      <p style="margin-top:0;color:var(--ink-soft)">Baseball has the most dots. Choose a category and a key value to see how the total changes.</p>
+      <div class="keycalc" id="keyCalc"></div>
+      <p class="hintline" style="margin-top:12px">Same 7 dots, very different totals — that is why we <b>always check the key first</b>.</p>
+      <div class="teacher-note"><span class="pill">Teacher</span><b>Common trap.</b> Students read the dots as the answer and ignore the key. Model the multiplication out loud: “7 dots, one dot is 5 people, so 7 × 5 = 35 people.”</div>
+    </div>
+  </div>
+</section>
+
+<!-- HIGHEST & LOWEST -->
+<section id="freq" class="wrap">
+  <div class="part-tag">Big idea 3 · Success criterion</div>
+  <h2>Highest &amp; lowest frequency</h2>
+  <p class="lead">The <b>highest frequency</b> is the tallest stack of dots — the most common result. The <b>lowest frequency</b> is the shortest stack — the least common result. A number with no dots has a frequency of <b>0</b>.</p>
+  <div class="card">
+    <div class="ref">
+      <div class="cell"><h4>📈 Highest frequency</h4><p>The category with the <b>most</b> dots — the tallest stack.</p><p class="pin">In the pets table: Cat, with 9.</p></div>
+      <div class="cell"><h4>📉 Lowest frequency</h4><p>The category with the <b>fewest</b> dots — the shortest stack.</p><p class="pin">Reptile, with just 1 (Fish has 0).</p></div>
+      <div class="cell"><h4>🟰 Equal frequency</h4><p>Two stacks the <b>same height</b> — equally common.</p><p class="pin">Compare stacks dot-for-dot.</p></div>
+      <div class="cell"><h4>➖ Difference</h4><p>Subtract one frequency from another to compare.</p><p class="pin">Cat − Bird = 9 − 5 = 4 more.</p></div>
+    </div>
+    <div class="teacher-note"><span class="pill">Teacher</span>Keep the language precise: “most / least common” describes the <i>category</i>; “highest / lowest frequency” describes the <i>count</i>. With a key, the tallest stack is still the highest frequency — remind students to multiply for the actual number.</div>
+  </div>
+</section>
+
+<!-- READING DATA / MAKING -->
+<section id="make" class="wrap">
+  <div class="part-tag">Big idea 4 · Success criterion</div>
+  <h2>Explain the data on a dot plot</h2>
+  <p class="lead">A dot plot can come from a <b>frequency table</b> or from a <b>list of results</b>. Reading it means describing what the dots tell us — the most and least common results, gaps, and totals.</p>
+  <div class="two">
+    <div class="card">
+      <table class="freq" id="petTable">
+        <caption>How many pets?</caption>
+        <thead><tr><th>Pet type</th><th>How many</th></tr></thead>
+        <tbody>
+          <tr><td><span class="emoji-ico">🐶</span>Dog</td><td class="num">7</td></tr>
+          <tr><td><span class="emoji-ico">🐱</span>Cat</td><td class="num">9</td></tr>
+          <tr><td><span class="emoji-ico">🐦</span>Bird</td><td class="num">5</td></tr>
+          <tr><td><span class="emoji-ico">🐠</span>Fish</td><td class="num">0</td></tr>
+          <tr><td><span class="emoji-ico">🦎</span>Reptile</td><td class="num">1</td></tr>
+        </tbody>
+      </table>
+      <p class="hintline">Each number in the “How many” column becomes a stack that many dots tall. Fish has <b>0</b> — an empty space.</p>
+    </div>
+    <div class="card">
+      <h3>Reading the pets data</h3>
+      <ul style="margin:.2em 0 0; padding-left:1.15em; color:var(--ink-soft)">
+        <li><b>Most common:</b> Cat (highest frequency, 9).</li>
+        <li><b>Least common:</b> Reptile (1) — Fish has none at all.</li>
+        <li><b>Difference:</b> Cat has 9 − 7 = <b>2 more</b> than Dog.</li>
+        <li><b>Total pets:</b> 7 + 9 + 5 + 0 + 1 = <b>22</b>.</li>
+      </ul>
+      <div class="card define" style="margin-top:12px">Build this exact dot plot yourself in the tool below — including the tricky Fish = 0.</div>
+    </div>
+  </div>
+</section>
+
+<!-- VIDEOS -->
+<section id="videos" class="wrap">
+  <div class="part-tag">Watch first</div>
+  <h2>Videos on Mathspace</h2>
+  <div class="card">
+    <p style="margin-top:0">Watch the two videos on Mathspace about dot plots. They cover how to read and construct a dot plot, and how to identify gaps, outliers, and clusters.</p>
+    <div class="btnrow">
+      <a class="btn" href="https://mathspace.co/textbooks/syllabuses/Syllabus-1036/topics/Topic-20362/subtopics/Subtopic-267730/?activeTab=theory&activeLessonTab=content" target="_blank" rel="noopener">Open the Mathspace lesson ↗</a>
+    </div>
+    <div class="teacher-note"><span class="pill">Teacher</span>Watch together or set as a do-now. Pause on the key slide and ask a student to say the “count × key” sentence aloud before moving on.</div>
+  </div>
+</section>
+
+<!-- BUILDER -->
+<section id="builder" class="wrap">
+  <div class="part-tag">Signature tool · try it</div>
+  <h2>Build a dot plot</h2>
+  <p class="lead">Tap above a category to set how many dots it has, or use the <b>+ / −</b> buttons. Match every stack to the frequency table, then press <b>Check my dot plot</b>. Correct stacks turn teal; ones that need another look fade out.</p>
+  <div class="card">
+    <div id="builderPets"></div>
+    <div class="teacher-note"><span class="pill">Teacher</span><b>Model Dog together</b> (tap at the 7th dot), then let students finish. Fish = 0 is the discussion point: an empty stack is a real, correct answer — it means nobody chose fish.</div>
+  </div>
+</section>
+
+<!-- ACTIVITIES -->
+<section id="activities" class="wrap">
+  <div class="part-tag">Differentiated practice</div>
+  <h2>Must Complete Work</h2>
+
+  <div class="filterbar">
+    <span class="lbl">Show tier:</span>
+    <button class="chip on" data-f="all"><span class="lt"></span>All</button>
+    <button class="chip" data-f="green"><span class="lt"></span>Green</button>
+    <button class="chip" data-f="amber"><span class="lt"></span>Amber</button>
+    <button class="chip" data-f="red"><span class="lt"></span>Red</button>
+  </div>
+
+  <!-- GREEN -->
+  <div class="activity" data-tier="green">
+    <div class="head"><span class="tier">🟢 Green</span> Reading a dot plot <span class="tag">1 dot = 1 student</span></div>
+    <div class="body">
+      <div class="scenario">
+        <h4>Hours spent on homework a week — Year 5 students</h4>
+        <p class="muted" style="margin:0 0 6px">The dot plot below shows how many hours each student spends on homework each week. <b>1 dot = 1 student.</b> Use it to answer the questions.</p>
+        <svg id="hwChart" class="chart" viewBox="0 0 520 240" role="img" aria-label="Dot plot of hours spent on homework a week for Year 5 students"></svg>
+      </div>
+      <div class="scenario">
+        <h4>Answer the questions</h4>
+        <ol class="qanda">
+          <li><div class="q">How many students were surveyed?</div><textarea rows="1" data-check="number" data-answer="17" placeholder="Type your answer…" aria-label="Answer"></textarea></li>
+          <li><div class="q">Which number of hours is most common?</div><textarea rows="1" data-check="contains" data-answer="6,12" placeholder="Type your answer…" aria-label="Answer"></textarea></li>
+          <li><div class="q">Which number of hours is least common?</div><textarea rows="1" data-check="contains" data-answer="5,7,10,11" placeholder="Type your answer…" aria-label="Answer"></textarea></li>
+          <li><div class="q">Are there any number of hours spent on homework a week the same? Which ones?</div><textarea rows="2" data-check="open" placeholder="Type your answer…" aria-label="Answer"></textarea></li>
+        </ol>
+      </div>
+      <div class="btnrow"><button class="btn sm checkans">Check my answers</button><button class="btn ghost sm reveal" data-target="ansGreen">Reveal answers</button><span class="checksum"></span></div>
+      <div class="answer" id="ansGreen"><div class="inner">
+        <h5>✓ Answers</h5>
+        <ul>
+          <li><b>Students surveyed:</b> add every dot → 1 + 4 + 1 + 3 + 2 + 1 + 1 + 4 = <b>17 students</b>.</li>
+          <li><b>Most common:</b> <b>6 hours and 12 hours</b> — both have the tallest stacks (4 students each).</li>
+          <li><b>Least common:</b> <b>5, 7, 10 and 11 hours</b> — each has only 1 student.</li>
+          <li><b>Same frequency:</b> yes — 6 and 12 hours are the same (4 each), and 5, 7, 10 and 11 hours are the same (1 each).</li>
+        </ul>
+      </div></div>
+      <div class="teacher-note"><span class="pill">Teacher</span>Push justification: “How do you know?” → point to the <i>height</i> of the stack. Note there are two modes (6 and 12) — a good chance to say a data set can have more than one most-common value.</div>
+    </div>
+  </div>
+
+  <!-- AMBER -->
+  <div class="activity" data-tier="amber">
+    <div class="head"><span class="tier">🟠 Amber</span> Reading the data in dot plots <span class="tag">1 dot = 4 students</span></div>
+    <div class="body">
+      <div class="scenario">
+        <h4>Ages of students at school</h4>
+        <p class="muted" style="margin:0 0 6px">This dot plot shows the ages of students at a school. <b>Watch the key: 1 dot = 4 students.</b> Count the dots, then use the key.</p>
+        <svg id="ageSchoolChart" class="chart" viewBox="0 0 540 250" role="img" aria-label="Dot plot of ages of students at school, 1 dot equals 4 students"></svg>
+      </div>
+      <div class="scenario">
+        <h4>Answer the questions</h4>
+        <ol class="qanda">
+          <li><div class="q">How many students were surveyed?</div><textarea rows="1" data-check="number" data-answer="160" placeholder="Type your answer…" aria-label="Answer"></textarea></li>
+          <li><div class="q">Which age is most common?</div><textarea rows="1" data-check="number" data-answer="9" placeholder="Type your answer…" aria-label="Answer"></textarea></li>
+          <li><div class="q">Which age is least common?</div><textarea rows="1" data-check="number" data-answer="5" placeholder="Type your answer…" aria-label="Answer"></textarea></li>
+          <li><div class="q">How many students are 9?</div><textarea rows="1" data-check="number" data-answer="28" placeholder="Type your answer…" aria-label="Answer"></textarea></li>
+        </ol>
+      </div>
+      <div class="btnrow"><button class="btn sm checkans">Check my answers</button><button class="btn ghost sm reveal" data-target="ansAmber">Reveal answers</button><span class="checksum"></span></div>
+      <div class="answer" id="ansAmber"><div class="inner">
+        <h5>✓ Answers</h5>
+        <ul>
+          <li><b>Students surveyed:</b> count all the dots (1 + 5 + 6 + 6 + 7 + 6 + 4 + 5 = 40 dots), then × 4 → <b>160 students</b>.</li>
+          <li><b>Most common:</b> age <b>9</b> — the tallest stack (7 dots).</li>
+          <li><b>Least common:</b> age <b>5</b> — the shortest stack (1 dot).</li>
+          <li><b>How many are 9:</b> 7 dots × 4 = <b>28 students</b>.</li>
+        </ul>
+      </div></div>
+      <div class="teacher-note"><span class="pill">Teacher</span>The key (1 dot = 4) is the whole point here. “Most / least common age” is answered by stack <i>height</i>, but every <i>how many</i> answer must be multiplied by 4. Model “7 dots × 4 = 28” before students start.</div>
+    </div>
+  </div>
+
+  <!-- RED -->
+  <div class="activity" data-tier="red">
+    <div class="head"><span class="tier">🔴 Red</span> Interpreting dot plots <span class="tag">Mrs Smith’s travel time</span></div>
+    <div class="body">
+      <div class="scenario">
+        <h4>Minutes taken to get to school each day for 2 months — Mrs Smith</h4>
+        <p class="muted" style="margin:0 0 6px"><b>1 dot = 1 day.</b> Use the dot plot to answer, then explain your thinking.</p>
+        <svg id="mrsSmithChart" class="chart" viewBox="0 0 640 240" role="img" aria-label="Dot plot of minutes taken to get to school for Mrs Smith, 1 dot equals 1 day"></svg>
+        <ol class="qanda" style="margin-top:10px">
+          <li><div class="q">How many days was data collected for?</div><textarea rows="1" data-check="number" data-answer="30" placeholder="Type your answer…" aria-label="Answer"></textarea></li>
+          <li><div class="q">14, 15 and 16 minutes occur the same number of times, as did 19, 20 and 21. Why do you think this could be?</div><textarea rows="2" data-check="open" placeholder="Type your answer…" aria-label="Answer"></textarea></li>
+          <li><div class="q">Could this person have changed their mode of transport over the month? Explain.</div><textarea rows="2" data-check="open" placeholder="Type your answer…" aria-label="Answer"></textarea></li>
+          <li><div class="q">Give a reason as to why you think 24 minutes might have occurred once.</div><textarea rows="2" data-check="open" placeholder="Type your answer…" aria-label="Answer"></textarea></li>
+        </ol>
+      </div>
+      <div class="scenario">
+        <h4><span class="star">★</span> Extension — write your own questions</h4>
+        <p class="muted" style="margin:0 0 6px">Same data, but now <b>1 dot = 2 days.</b> Write <b>3 of your own questions</b> and their responses to interpret the data.</p>
+        <svg id="mrsSmithExtChart" class="chart" viewBox="0 0 640 240" role="img" aria-label="Dot plot of Mrs Smith travel time, 1 dot equals 2 days"></svg>
+        <div class="writebox">
+          <div class="writerow"><span class="n">1</span><textarea rows="2" placeholder="Question 1 — and your response…" aria-label="Question 1 and response"></textarea></div>
+          <div class="writerow"><span class="n">2</span><textarea rows="2" placeholder="Question 2 — and your response…" aria-label="Question 2 and response"></textarea></div>
+          <div class="writerow"><span class="n">3</span><textarea rows="2" placeholder="Question 3 — and your response…" aria-label="Question 3 and response"></textarea></div>
+        </div>
+      </div>
+      <div class="btnrow"><button class="btn sm checkans">Check my answers</button><button class="btn ghost sm reveal" data-target="ansRed">Reveal answers</button><span class="checksum"></span></div>
+      <div class="answer" id="ansRed"><div class="inner">
+        <h5>✓ Answers &amp; guidance</h5>
+        <ul>
+          <li><b>Days collected:</b> add every dot → 1 + 2 + 3 + 3 + 3 + 2 + 5 + 5 + 5 + 1 = <b>30 days</b>.</li>
+          <li><b>Same frequencies:</b> the trips cluster into two groups (14–16 min and 19–21 min). This could happen if the travel time is fairly steady — the same route, mode or traffic gives similar times each day.</li>
+          <li><b>Changed transport?</b> Possibly yes — the <i>two separate clusters</i> (a faster group around 14–16 and a slower group around 19–21) could mean a quicker mode on some days and a slower one on others. There is no single spread-out pattern, which is a clue.</li>
+          <li><b>24 minutes once:</b> a one-off <i>outlier</i> — e.g. heavy traffic, roadworks, bad weather, or leaving late that day.</li>
+          <li><b>Extension (1 dot = 2 days):</b> every dot now counts double, so totals double (30 dots → 60 “days”). Accept any 3 sensible questions, e.g. “How many days took 20 minutes?” (5 dots × 2 = 10) or “What is the difference between the most and least common times?”.</li>
+        </ul>
+      </div></div>
+      <div class="teacher-note"><span class="pill">Teacher</span>Questions 2–4 are about <i>reasoning</i>, not one right number — look for language of clusters, gaps and outliers (from the videos). For the extension, insist each student question includes the key in its answer, so they prove they know 1 dot = 2 days.</div>
+    </div>
+  </div>
+</section>
+
+<!-- REFLECTION -->
+<section id="reflect" class="wrap">
+  <div class="part-tag">Reflection · how did you go?</div>
+  <h2>Check yourself</h2>
+  <div class="card">
+    <div class="reflect" id="reflectList"></div>
+    <div class="teacher-note"><span class="pill">Teacher</span>Exit check. If anyone is unsure: count the dots, then multiply by the key. Collect self-ratings to group for next lesson.</div>
+  </div>
+</section>
+
+<!-- EXIT TICKET -->
+<section id="context" class="wrap">
+  <div class="part-tag">Exit ticket</div>
+  <h2>Your exit ticket</h2>
+  <div class="card">
+    <p style="margin-top:0; font-size:1.05rem; color:var(--ink-soft)">Once you have finished and marked your tasks, click the link below to complete your exit ticket on Mathspace.</p>
+    <div class="btnrow"><a class="btn" href="https://mathspace.co/student/tasks/SubtopicCustomTask-2075608/" target="_blank" rel="noopener">Open exit ticket on Mathspace ↗</a></div>
+    <div class="teacher-note"><span class="pill">Teacher</span>Gate the exit ticket on marking being finished — it is the evidence for the four success criteria. Check the value-of-the-key question in particular.</div>
+  </div>
+</section>
+
+<footer class="wrap">
+  Grade 5 Mathematics · Reading and interpreting dot plots, keys, frequency and differences
+  <div class="curric">Aligned to Victorian Curriculum 2.0 · Statistics</div>
+  <div style="margin-top:12px">
+    <a class="curric-link" href="https://f10.vcaa.vic.edu.au/learning-areas/mathematics/curriculum?level=5#VC2M5ST01" target="_blank" rel="noopener">VC2M5ST01 — represent &amp; interpret data distributions ↗</a>
+    <a class="curric-link" href="https://f10.vcaa.vic.edu.au/learning-areas/mathematics/curriculum?level=5" target="_blank" rel="noopener">All Level 5 Mathematics ↗</a>
+  </div>
+</footer>
+
+<script>
+(function(){
+  "use strict";
+  const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const SVGNS = "http://www.w3.org/2000/svg";
+  const el = (n,a)=>{const e=document.createElementNS(SVGNS,n); if(a) for(const k in a) e.setAttribute(k,a[k]); return e;};
+
+  /* ---------- static dot-plot renderer ---------- */
+  function drawDot(svg, cats, opts){
+    opts = opts || {};
+    while(svg.firstChild) svg.removeChild(svg.firstChild);
+    const vb = svg.getAttribute('viewBox').split(' ').map(Number);
+    const W = vb[2], H = vb[3];
+    const padL = 20, padR = 14, padT = 16, padB = 42;
+    const plotW = W - padL - padR, plotH = H - padT - padB, baseY = padT + plotH;
+    const n = cats.length, slot = plotW / n;
+    let maxDots = opts.maxDots || Math.max.apply(null, cats.map(c=>c.dots));
+    maxDots = Math.max(maxDots, 1);
+    const cell = plotH / maxDots;                          // vertical room per dot
+    const rr = Math.min(slot*0.30, cell*0.42, 13);
+    // baseline (x-axis)
+    svg.appendChild(el('line',{x1:padL-4,y1:baseY,x2:padL+plotW,y2:baseY,stroke:'var(--ink-soft)','stroke-width':2}));
+    // little tick under each category
+    cats.forEach((c,i)=>{
+      const cx = padL + slot*i + slot/2;
+      svg.appendChild(el('line',{x1:cx,y1:baseY,x2:cx,y2:baseY+6,stroke:'var(--ink-soft)','stroke-width':2}));
+      // dots
+      for(let d=0; d<c.dots; d++){
+        const cy = baseY - cell*(d+0.5);
+        const circ = el('circle',{cx:cx,cy:cy,r:rr,fill:'var(--dot)',class:'dotmark'});
+        svg.appendChild(circ);
+        if(!reduce){ circ.setAttribute('opacity','0'); requestAnimationFrame(()=>requestAnimationFrame(()=>circ.setAttribute('opacity','1'))); }
+      }
+      // category label (supports two-word wrap)
+      const parts = String(c.label).split('\n');
+      parts.forEach((p,li)=>{
+        svg.appendChild(el('text',{x:cx,y:baseY+20+li*13,'text-anchor':'middle','font-family':'Nunito, sans-serif','font-size':12,'font-weight':700,fill:'var(--ink-soft)'})).textContent=p;
+      });
+    });
+  }
+
+  // ---- build a frequency list into {label,dots} ----
+  function fromValues(values){
+    const map = {};
+    values.forEach(v=>{ map[v]=(map[v]||0)+1; });
+    return Object.keys(map).map(Number).sort((a,b)=>a-b).map(k=>({label:String(k),dots:map[k]}));
+  }
+
+  // HERO — team members, drawn as dot counts (1 dot = 5 people)
+  drawDot(document.getElementById('heroChart'),
+    [{label:'Tennis',dots:5},{label:'Golf',dots:4},{label:'Baseball',dots:7},{label:'Football',dots:4},{label:'Bowls',dots:1}],
+    {maxDots:7});
+
+  // Ages people passed their driving test
+  drawDot(document.getElementById('ageChart'),
+    fromValues([17,17,20,17,22,18,22,18,22,18,22,17,19,18,18]),
+    {maxDots:6});
+
+  // Team members again in the key section
+  drawDot(document.getElementById('teamChart'),
+    [{label:'Tennis',dots:5},{label:'Golf',dots:4},{label:'Baseball',dots:7},{label:'Football',dots:4},{label:'Bowls',dots:1}],
+    {maxDots:7});
+
+  // Homework hours (green activity) — numeric axis 5..12
+  drawDot(document.getElementById('hwChart'),
+    [{label:'5',dots:1},{label:'6',dots:4},{label:'7',dots:1},{label:'8',dots:3},{label:'9',dots:2},{label:'10',dots:1},{label:'11',dots:1},{label:'12',dots:4}],
+    {maxDots:5});
+
+  // Ages of students at school (amber) — 1 dot = 4 students
+  drawDot(document.getElementById('ageSchoolChart'),
+    [{label:'5',dots:1},{label:'6',dots:5},{label:'7',dots:6},{label:'8',dots:6},{label:'9',dots:7},{label:'10',dots:6},{label:'11',dots:4},{label:'12',dots:5}],
+    {maxDots:8});
+
+  // Mrs Smith travel minutes (red) — 12..24
+  const mrsSmith=[{label:'12',dots:1},{label:'13',dots:2},{label:'14',dots:3},{label:'15',dots:3},{label:'16',dots:3},{label:'17',dots:0},{label:'18',dots:2},{label:'19',dots:5},{label:'20',dots:5},{label:'21',dots:5},{label:'22',dots:0},{label:'23',dots:0},{label:'24',dots:1}];
+  drawDot(document.getElementById('mrsSmithChart'), mrsSmith, {maxDots:6});
+  drawDot(document.getElementById('mrsSmithExtChart'), mrsSmith, {maxDots:6});
+
+  /* ---------- key calculator ---------- */
+  (function(){
+    const mount = document.getElementById('keyCalc');
+    if(!mount) return;
+    const cats = [['Tennis',5],['Golf',4],['Baseball',7],['Football',4],['Bowls',1]];
+    const keys = [1,2,5,10];
+    const catSel = document.createElement('select');
+    cats.forEach((c,i)=>{const o=document.createElement('option'); o.value=i; o.textContent=c[0]+' ('+c[1]+' dots)'; catSel.appendChild(o);});
+    catSel.value = 2; // baseball
+    const keySel = document.createElement('select');
+    keys.forEach(k=>{const o=document.createElement('option'); o.value=k; o.textContent=k+(k===1?' person':' people'); keySel.appendChild(o);});
+    keySel.value = 5;
+    const dotsBox = document.createElement('span'); dotsBox.className='dots';
+    const out = document.createElement('span'); out.className='out';
+
+    mount.innerHTML='';
+    const c1=document.createElement('span'); c1.className='catpick'; c1.appendChild(document.createTextNode('Category')); c1.appendChild(catSel);
+    const c2=document.createElement('span'); c2.className='chunk'; c2.appendChild(dotsBox);
+    const times=document.createElement('span'); times.className='eq'; times.textContent='×';
+    const c3=document.createElement('span'); c3.className='catpick'; c3.appendChild(document.createTextNode('1 dot =')); c3.appendChild(keySel);
+    const eq=document.createElement('span'); eq.className='eq'; eq.textContent='=';
+    mount.appendChild(c1); mount.appendChild(c2); mount.appendChild(times); mount.appendChild(c3); mount.appendChild(eq); mount.appendChild(out);
+
+    function update(){
+      const dots = cats[+catSel.value][1];
+      dotsBox.innerHTML='';
+      for(let i=0;i<dots;i++){ const d=document.createElement('i'); dotsBox.appendChild(d); }
+      const total = dots * (+keySel.value);
+      out.textContent = total + (total===1?' person':' people');
+    }
+    catSel.addEventListener('change',update);
+    keySel.addEventListener('change',update);
+    update();
+  })();
+
+  /* =========================================================
+     INTERACTIVE DOT-PLOT BUILDER
+     cfg = {mount, title, xLabel, keyValue, keyUnit,
+            cats:[{label, answer}], showTable, colCat, colCount}
+     ========================================================= */
+  function makeBuilder(cfg){
+    const mount = typeof cfg.mount==='string'?document.getElementById(cfg.mount):cfg.mount;
+    const cats = cfg.cats;
+    const values = cats.map(()=>0);
+    const maxDots = Math.max.apply(null, cats.map(c=>c.answer));
+    const capDots = maxDots + 1;                 // allow a little overshoot
+
+    const root=document.createElement('div'); root.className='builder';
+    const grid=document.createElement('div'); grid.className='builder-grid';
+
+    // left column: steppers + controls + feedback
+    const left=document.createElement('div');
+    const inTag=document.createElement('div'); inTag.className='datatag'; inTag.textContent='Set each stack'; left.appendChild(inTag);
+    const steppers=document.createElement('div'); steppers.className='steppers'; left.appendChild(steppers);
+    const controls=document.createElement('div'); controls.className='controls';
+    const checkBtn=document.createElement('button'); checkBtn.className='btn sm'; checkBtn.textContent='Check my dot plot';
+    const resetBtn=document.createElement('button'); resetBtn.className='btn ghost sm'; resetBtn.textContent='Reset';
+    controls.appendChild(checkBtn); controls.appendChild(resetBtn);
+    left.appendChild(controls);
+    const feedback=document.createElement('div'); feedback.className='feedback'; left.appendChild(feedback);
+    const checklist=document.createElement('ul'); checklist.className='checklist'; left.appendChild(checklist);
+    const hint=document.createElement('div'); hint.className='hintline'; hint.textContent='Tip: tap the graph where you want the top dot, or use + / −. A stack of 0 is allowed.'; left.appendChild(hint);
+
+    // middle: the figure
+    const mid=document.createElement('div');
+    const fig=document.createElement('div'); fig.className='graphfig';
+    const gtitle=document.createElement('div'); gtitle.className='gtitle'; gtitle.textContent=cfg.title||''; fig.appendChild(gtitle);
+    const svgWrap=document.createElement('div'); svgWrap.className='gsvg';
+    const svg=el('svg',{viewBox:'0 0 460 250',class:'buildchart',role:'img','aria-label':(cfg.title||'dot plot')+' builder'});
+    svgWrap.appendChild(svg); fig.appendChild(svgWrap);
+    const xlab=document.createElement('div'); xlab.className='xlabel'; xlab.textContent=cfg.xLabel||''; if(cfg.xLabel) fig.appendChild(xlab);
+    const kn=document.createElement('div'); kn.className='keynote';
+    kn.innerHTML='<i></i> 1 dot = '+(cfg.keyValue||1)+' '+(cfg.keyUnit||'');
+    fig.appendChild(kn);
+    mid.appendChild(fig);
+
+    // optional frequency table column
+    if(cfg.showTable!==false){
+      grid.classList.add('has-table');
+      const tcol=document.createElement('div');
+      const tag=document.createElement('div'); tag.className='datatag'; tag.textContent='Frequency table'; tcol.appendChild(tag);
+      const tbl=document.createElement('table'); tbl.className='freq';
+      const thead=document.createElement('thead'); const hr=document.createElement('tr');
+      const th1=document.createElement('th'); th1.textContent=cfg.colCat||'Category';
+      const th2=document.createElement('th'); th2.textContent=cfg.colCount||'How many';
+      hr.appendChild(th1); hr.appendChild(th2); thead.appendChild(hr); tbl.appendChild(thead);
+      const tb=document.createElement('tbody');
+      cats.forEach(c=>{
+        const tr=document.createElement('tr');
+        const td1=document.createElement('td'); td1.innerHTML=(c.icon?'<span class="emoji-ico">'+c.icon+'</span>':'<span class="swatch"></span>')+c.label;
+        const td2=document.createElement('td'); td2.className='num'; td2.textContent=c.answer;
+        tr.appendChild(td1); tr.appendChild(td2); tb.appendChild(tr);
+      });
+      tbl.appendChild(tb); tcol.appendChild(tbl); grid.appendChild(tcol);
+    }
+
+    grid.appendChild(mid); grid.appendChild(left);
+    root.appendChild(grid); mount.appendChild(root);
+
+    // steppers
+    const valEls=[];
+    cats.forEach((c,i)=>{
+      const row=document.createElement('div'); row.className='stepper';
+      const nm=document.createElement('span'); nm.className='nm'; nm.innerHTML=(c.icon?'<span class="emoji-ico">'+c.icon+'</span>':'<span class="swatch"></span>')+c.label;
+      const minus=document.createElement('button'); minus.className='stepbtn'; minus.textContent='−'; minus.setAttribute('aria-label','decrease '+c.label);
+      const v=document.createElement('span'); v.className='val'; v.textContent='0';
+      const plus=document.createElement('button'); plus.className='stepbtn'; plus.textContent='+'; plus.setAttribute('aria-label','increase '+c.label);
+      minus.addEventListener('click',()=>setVal(i,values[i]-1));
+      plus.addEventListener('click',()=>setVal(i,values[i]+1));
+      row.appendChild(nm); row.appendChild(minus); row.appendChild(v); row.appendChild(plus);
+      steppers.appendChild(row); valEls.push(v);
+    });
+
+    // geometry / render
+    let geo={};
+    function render(checkState){
+      while(svg.firstChild) svg.removeChild(svg.firstChild);
+      const vb=svg.getAttribute('viewBox').split(' ').map(Number);
+      const W=vb[2],H=vb[3];
+      const padL=20,padR=14,padT=14,padB=44;
+      const plotW=W-padL-padR, plotH=H-padT-padB, baseY=padT+plotH;
+      const n=cats.length, slot=plotW/n;
+      const cell=plotH/capDots;
+      const rr=Math.min(slot*0.30, cell*0.42, 13);
+      geo={padL,plotW,plotH,baseY,slot,n,cell};
+      svg.appendChild(el('line',{x1:padL-4,y1:baseY,x2:padL+plotW,y2:baseY,stroke:'var(--ink-soft)','stroke-width':2}));
+      cats.forEach((c,i)=>{
+        const cx=padL+slot*i+slot/2;
+        svg.appendChild(el('line',{x1:cx,y1:baseY,x2:cx,y2:baseY+6,stroke:'var(--ink-soft)','stroke-width':2}));
+        const val=values[i];
+        const correct = checkState && val===c.answer;
+        let fill='var(--dot)';
+        if(checkState && val!==c.answer) fill='#CBD5E6';
+        for(let d=0; d<val; d++){
+          const cy=baseY-cell*(d+0.5);
+          const attrs={cx:cx,cy:cy,r:rr,fill:fill,class:'dotmark'};
+          if(correct){ attrs.stroke='var(--ok)'; attrs['stroke-width']=2; }
+          svg.appendChild(el('circle',attrs));
+        }
+        // count above stack
+        if(val>0){
+          svg.appendChild(el('text',{x:cx,y:baseY-cell*val-4,'text-anchor':'middle','font-family':'Space Mono, monospace','font-size':11,'font-weight':700,fill:checkState?(correct?'var(--ok)':'var(--amber)'):'var(--ink-faint)'})).textContent=val;
+        } else if(checkState && c.answer===0){
+          // correct empty stack
+          svg.appendChild(el('text',{x:cx,y:baseY-8,'text-anchor':'middle','font-family':'Space Mono, monospace','font-size':11,'font-weight':700,fill:'var(--ok)'})).textContent='0';
+        }
+        svg.appendChild(el('text',{x:cx,y:baseY+20,'text-anchor':'middle','font-family':'Nunito, sans-serif','font-size':12,'font-weight':700,fill:'var(--ink-soft)'})).textContent=c.label;
+      });
+    }
+
+    function setVal(i,newVal){
+      newVal=Math.max(0,Math.min(capDots,Math.round(newVal)));
+      values[i]=newVal; valEls[i].textContent=newVal;
+      feedback.textContent=''; feedback.className='feedback'; checklist.innerHTML='';
+      render(false);
+    }
+
+    function pointToValue(evt){
+      const pt=svg.createSVGPoint();
+      const src=evt.touches?evt.touches[0]:evt;
+      pt.x=src.clientX; pt.y=src.clientY;
+      const ctm=svg.getScreenCTM(); if(!ctm) return null;
+      const loc=pt.matrixTransform(ctm.inverse());
+      const {padL,slot,baseY,n,cell}=geo;
+      let i=Math.floor((loc.x-padL)/slot);
+      if(i<0||i>=n) return null;
+      let count=Math.round((baseY-loc.y)/cell);
+      count=Math.max(0,Math.min(capDots,count));
+      return {i,val:count};
+    }
+    let dragging=false;
+    function handle(evt){ const r=pointToValue(evt); if(r) setVal(r.i,r.val); }
+    svg.addEventListener('mousedown',e=>{dragging=true; handle(e); e.preventDefault();});
+    window.addEventListener('mousemove',e=>{ if(dragging) handle(e); });
+    window.addEventListener('mouseup',()=>{dragging=false;});
+    svg.addEventListener('touchstart',e=>{dragging=true; handle(e); e.preventDefault();},{passive:false});
+    svg.addEventListener('touchmove',e=>{ if(dragging){ handle(e); e.preventDefault(); } },{passive:false});
+    svg.addEventListener('touchend',()=>{dragging=false;});
+
+    checkBtn.addEventListener('click',()=>{
+      let allRight=true; checklist.innerHTML='';
+      cats.forEach((c,i)=>{
+        const li=document.createElement('li');
+        const ok=values[i]===c.answer;
+        if(!ok) allRight=false;
+        li.className=ok?'ok':'no';
+        let msg;
+        if(ok) msg=c.label+' = '+c.answer+' ✓';
+        else if(values[i]<c.answer) msg=c.label+': needs more dots ('+c.answer+')';
+        else msg=c.label+': too many dots (needs '+c.answer+')';
+        li.innerHTML='<span class="mk">'+(ok?'✓':'•')+'</span>'+msg;
+        checklist.appendChild(li);
+      });
+      render(true);
+      if(allRight){
+        feedback.className='feedback good';
+        feedback.textContent='🎉 Perfect! Every stack matches the frequency table.';
+      } else {
+        feedback.className='feedback bad';
+        feedback.textContent='Close! Fix the stacks marked below and check again.';
+      }
+    });
+    resetBtn.addEventListener('click',()=>{
+      cats.forEach((c,i)=>{ values[i]=0; valEls[i].textContent='0'; });
+      feedback.textContent=''; feedback.className='feedback'; checklist.innerHTML='';
+      render(false);
+    });
+
+    render(false);
+    return {render};
+  }
+
+  makeBuilder({ mount:'builderPets', title:'How many pets?', xLabel:'Pet type',
+    colCat:'Pet type', colCount:'How many', keyValue:1, keyUnit:'pet',
+    cats:[{label:'Dog',answer:7,icon:'🐶'},{label:'Cat',answer:9,icon:'🐱'},{label:'Bird',answer:5,icon:'🐦'},{label:'Fish',answer:0,icon:'🐠'},{label:'Reptile',answer:1,icon:'🦎'}] });
+
+  /* ---------- check typed answers ---------- */
+  document.querySelectorAll('.checkans').forEach(btn=>{
+    btn.addEventListener('click',()=>{
+      const activity=btn.closest('.activity');
+      const boxes=activity.querySelectorAll('textarea[data-check]');
+      let correct=0, checkable=0;
+      boxes.forEach(t=>{
+        let mark=t.parentNode.querySelector('.qmark');
+        if(!mark){ mark=document.createElement('div'); mark.className='qmark'; t.parentNode.appendChild(mark); }
+        t.classList.remove('ok','no');
+        const type=t.dataset.check;
+        const empty=!t.value.trim();
+        const nums=(t.value.match(/\d+/g)||[]).map(Number);
+        if(type==='open'){
+          mark.className='qmark note';
+          mark.textContent=empty?'✎ Write your answer, then compare it with the model answer below.':'✓ Answer recorded — compare it with the model answer below.';
+          return;
+        }
+        checkable++;
+        let ok=false;
+        if(type==='number') ok=nums.indexOf(+t.dataset.answer)!==-1;
+        else if(type==='contains'){ const targ=t.dataset.answer.split(',').map(Number); ok=targ.every(x=>nums.indexOf(x)!==-1); }
+        if(empty){ mark.className='qmark no'; mark.textContent='• Type an answer first.'; }
+        else if(ok){ mark.className='qmark ok'; mark.textContent='✓ Correct!'; t.classList.add('ok'); correct++; }
+        else { mark.className='qmark no'; mark.textContent='✗ Not quite — check the dot plot and try again.'; t.classList.add('no'); }
+      });
+      const sum=activity.querySelector('.checksum');
+      if(sum) sum.textContent=checkable?('✓ '+correct+' of '+checkable+' correct'):'';
+    });
+  });
+
+  /* ---------- reveal answers ---------- */
+  document.querySelectorAll('.reveal').forEach(btn=>{
+    btn.addEventListener('click',()=>{
+      const t=document.getElementById(btn.dataset.target);
+      const open=t.classList.toggle('open');
+      btn.textContent=open?'Hide answers':'Reveal answers';
+    });
+  });
+
+  /* ---------- tier filter ---------- */
+  const chips=document.querySelectorAll('.chip');
+  chips.forEach(chip=>{
+    chip.addEventListener('click',()=>{
+      chips.forEach(c=>c.classList.remove('on'));
+      chip.classList.add('on');
+      const f=chip.dataset.f;
+      document.querySelectorAll('.activity').forEach(a=>{
+        a.classList.toggle('hide', !(f==='all'||a.dataset.tier===f));
+      });
+    });
+  });
+
+  /* ---------- teacher notes toggle ---------- */
+  const tv=document.getElementById('tview'), lbl=document.getElementById('tviewlabel');
+  tv.addEventListener('click',()=>{
+    const studentMode=document.body.classList.toggle('students');
+    document.body.classList.toggle('teacher',!studentMode);
+    tv.setAttribute('aria-pressed',String(!studentMode));
+    lbl.textContent=studentMode?'Teacher notes: off':'Teacher notes: on';
+  });
+
+  /* ---------- success criteria & reflection ---------- */
+  const criteria=[
+    {t:'I can identify the value of the key.',tier:'green'},
+    {t:'I can explain the data represented on a dot plot.',tier:'green'},
+    {t:'I can explain highest and lowest frequency.',tier:'amber'},
+    {t:'I can calculate differences between categories.',tier:'red'}
+  ];
+  const tierColor={green:'var(--green)',amber:'var(--amber)',red:'var(--red)'};
+  const iCan=document.getElementById('iCanList');
+  criteria.forEach(c=>{
+    const row=document.createElement('div'); row.className='rrow';
+    row.innerHTML='<span style="width:12px;height:12px;border-radius:50%;background:'+tierColor[c.tier]+';flex:0 0 auto"></span><span class="txt">'+c.t+'</span>';
+    iCan.appendChild(row);
+  });
+  const refl=document.getElementById('reflectList');
+  criteria.forEach(c=>{
+    const row=document.createElement('div'); row.className='rrow';
+    const txt=document.createElement('span'); txt.className='txt'; txt.textContent=c.t;
+    const rate=document.createElement('span'); rate.className='rate';
+    [['got','Got it'],['near','Nearly'],['help','Need help']].forEach(pair=>{
+      const b=document.createElement('button'); b.className=pair[0]; b.textContent=pair[1];
+      b.addEventListener('click',()=>{ rate.querySelectorAll('button').forEach(x=>x.classList.remove('on')); b.classList.add('on'); });
+      rate.appendChild(b);
+    });
+    row.appendChild(txt); row.appendChild(rate); refl.appendChild(row);
+  });
+})();
+</script>
+</body>
+</html>
