@@ -67,10 +67,15 @@
     display:flex; align-items:center; gap:9px; margin-right:auto}
   .brand .glyph{display:inline-grid; grid-template-columns:repeat(3,7px); gap:3px; align-items:end; height:18px}
   .brand .glyph i{border-radius:50%; display:block; width:7px; height:7px; background:var(--dot)}
-  nav.jump{display:flex; gap:4px; flex-wrap:wrap}
+  nav.jump{display:flex; gap:3px; flex-wrap:wrap}
   nav.jump a{font-family:var(--display); font-weight:500; font-size:.82rem; text-decoration:none;
-    color:var(--ink-soft); padding:6px 10px; border-radius:999px}
+    color:var(--ink-soft); padding:6px 9px; border-radius:999px; white-space:nowrap}
   nav.jump a:hover{color:var(--ink); background:var(--accent-soft)}
+  @media(min-width:880px){
+    .bar-inner{flex-wrap:nowrap}
+    nav.jump{flex-wrap:nowrap}
+    .tview{flex:0 0 auto}
+  }
   .tview{font-family:var(--display); font-weight:600; font-size:.8rem; cursor:pointer;
     border:1.5px solid var(--accent); color:var(--accent); background:transparent;
     padding:6px 13px; border-radius:999px; display:inline-flex; align-items:center; gap:7px}
@@ -330,8 +335,8 @@
     <nav class="jump">
       <a href="#learn">What is it?</a>
       <a href="#key">The key</a>
-      <a href="#freq">Highest &amp; lowest</a>
-      <a href="#make">Reading data</a>
+      <a href="#freq">Frequency</a>
+      <a href="#make">Reading</a>
       <a href="#builder">Build one</a>
       <a href="#activities">Must complete</a>
       <a href="#context">Exit ticket</a>
